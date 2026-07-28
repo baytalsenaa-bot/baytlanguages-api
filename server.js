@@ -1,5 +1,6 @@
 // server.js — Bayt Languages backend entry point
 require("dotenv").config();
+const path = require("path");
 const express = require("express");
 const helmet = require("helmet");
 const cors = require("cors");
@@ -7,10 +8,13 @@ const rateLimit = require("express-rate-limit");
 
 const quoteRequestsRouter = require("./routes/quoteRequests");
 const verifyRouter = require("./routes/verify");
+const adminAuthRouter = require("./routes/adminAuth");
+const adminRouter = require("./routes/admin");
+const { requireAuth } = require("./lib/auth");
 
 const app = express();
-app.set("trust proxy", 1);
-app.use(helmet());
+
+app.use(helmet({ contentSecurityPolicy: false })); // CSP off so the simple admin UI's inline styles/scripts work
 app.use(
   cors({
     origin: process.env.PUBLIC_SITE_URL || true,
@@ -29,6 +33,11 @@ app.use(
 app.get("/api/health", (req, res) => res.json({ ok: true }));
 app.use("/api/quote-requests", quoteRequestsRouter);
 app.use("/api/verify", verifyRouter);
+app.use("/api/admin", adminAuthRouter); // login is public
+app.use("/api/admin", requireAuth, adminRouter); // everything else requires a valid session
+
+// Admin panel UI (static single-page app) — not indexed, see robots handling if added later.
+app.use("/admin", express.static(path.join(__dirname, "public/admin")));
 
 // 404 for unmatched API routes
 app.use("/api", (req, res) => res.status(404).json({ error: "not_found" }));

@@ -425,13 +425,27 @@
         resultBox.style.display = "block";
         resultBox.innerHTML = `
           <h3>تم إصدار المستند بنجاح ✅</h3>
+          <div class="qr-box" style="margin-bottom:18px">
+            <img id="doc-qr-img" alt="QR Code" src="" />
+            <div><a id="doc-qr-download" class="btn btn-outline" style="height:36px;padding:0 14px;font-size:13px;margin-top:10px;display:inline-flex">تنزيل صورة QR</a></div>
+          </div>
           <div class="kv"><div class="k">الرقم المرجعي</div><div>${esc(result.reference)}</div></div>
           <div class="kv"><div class="k">رمز التحقق الكامل</div><div class="code-box">${esc(fullCode)}</div></div>
           <div class="kv"><div class="k">رابط التحقق</div><div><a href="${esc(result.verifyUrl)}" target="_blank" style="color:var(--primary);font-weight:600">${esc(result.verifyUrl)}</a></div></div>
           <p style="font-size:13.5px;color:var(--text-secondary);margin-top:14px">
-            انسخ الرمز الكامل أعلاه واطبعه على المستند المترجم الذي تسلّمه للعميل (كنص و/أو رمز QR).
+            اطبع صورة الـ QR أعلاه (أو الرمز النصي) على المستند المترجم الذي تسلّمه للعميل.
           </p>
         `;
+        // Fetch the QR image with auth and show it (an <img src> can't send the Authorization header itself).
+        const qrRes = await fetch(`${API_BASE}/documents/${result.id}/qr`, {
+          headers: { Authorization: "Bearer " + getToken() },
+        });
+        const qrBlob = await qrRes.blob();
+        const qrUrl = URL.createObjectURL(qrBlob);
+        document.getElementById("doc-qr-img").src = qrUrl;
+        const dl = document.getElementById("doc-qr-download");
+        dl.href = qrUrl;
+        dl.download = `${result.reference}-qr.png`;
         showToast("تم إصدار المستند");
       } catch {
         showToast("تعذّر إصدار المستند");

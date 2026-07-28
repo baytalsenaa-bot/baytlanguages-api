@@ -10,6 +10,7 @@ const quoteRequestsRouter = require("./routes/quoteRequests");
 const verifyRouter = require("./routes/verify");
 const adminAuthRouter = require("./routes/adminAuth");
 const adminRouter = require("./routes/admin");
+const setupRouter = require("./routes/setup"); // TEMPORARY — remove after creating your admin account
 const { requireAuth } = require("./lib/auth");
 
 const app = express();
@@ -35,6 +36,7 @@ app.use("/api/quote-requests", quoteRequestsRouter);
 app.use("/api/verify", verifyRouter);
 app.use("/api/admin", adminAuthRouter); // login is public
 app.use("/api/admin", requireAuth, adminRouter); // everything else requires a valid session
+app.use("/api/setup", setupRouter); // TEMPORARY setup endpoint — remove once admin account exists
 
 // Admin panel UI (static single-page app) — not indexed, see robots handling if added later.
 app.use("/admin", express.static(path.join(__dirname, "public/admin")));
